@@ -10,7 +10,6 @@ function:jingdong seckill
 
 import requests
 import requests.packages.urllib3
-import imp
 requests.packages.urllib3.disable_warnings()
 import time
 import json
@@ -21,7 +20,12 @@ import signal
 from function import FuncName,quit,readFile,tags_val
 import bs4
 import os
+
 import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
+
 
 class JDLogin(object):
     '''
@@ -94,8 +98,8 @@ class JDLogin(object):
             'alc':''
         }
         try:
-            print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-            print('{0} > 正在登陆，准备获取cookies:'.format(time.ctime()))
+            print '+++++++++++++++++++++++++++++++++++++++++++++++++++++++'
+            print u'{0} > 正在登陆，准备获取cookies:'.format(time.ctime())
             urls=(
                 'https://passport.jd.com/new/login.aspx?ReturnUrl=https%3A%2F%2Fwww.jd.com%2F' ,
                 'https://passport.jd.com/uc/showAuthCode',
@@ -105,7 +109,7 @@ class JDLogin(object):
             sess = requests.Session()
             resp=sess.get(urls[0],headers=headers0,verify=False)
             if resp.status_code != requests.codes.OK:
-                print('获取二维码失败: %u' % resp.status_code)
+                print u'获取二维码失败: %u' % resp.status_code
                 return False
             cookies['_t']=resp.cookies['_t']
             cookies['alc']=resp.cookies['alc']
@@ -133,11 +137,11 @@ class JDLogin(object):
             if jsonV['verifycode']==True:
                 #需要验证码
                 while not data1['authcode']:
-                    print('该账号需要验证码，请等待！(如需重新加载验证码请按回车键)')
+                    print u'该账号需要验证码，请等待！(如需重新加载验证码请按回车键)'
                     # get v image
                     #sess = requests.Session()
                     vUrlt=vUrl+str(int(time.time() * 1000))
-                    print(vUrlt)
+                    print vUrlt
                     sess = requests.Session()
                     resp2 = sess.get(
                             vUrlt,
@@ -145,14 +149,14 @@ class JDLogin(object):
                             verify=False
                         )
                     if resp2.status_code != requests.codes.OK:
-                        print('获取二维码失败: %u' % resp2.status_code)
+                        print u'获取二维码失败: %u' % resp2.status_code
                         return False
                     image_file = 'qr.png'
                     with open(image_file, 'wb') as f:
                         for chunk in resp2.iter_content(chunk_size=1024):
                             f.write(chunk)
                     imgprocess = subprocess.Popen("mspaint.exe qr.png")
-                    data1['authcode']=input("Input Verification Code:\n").encode('utf8')
+                    data1['authcode']=raw_input("Input Verification Code:\n").encode('utf8')
                     imgprocess.kill()
             #print '----------------------------------------------------'
             #time.sleep(0.2)
@@ -171,22 +175,22 @@ class JDLogin(object):
                 verify=False
             )
             if resp3.status_code != requests.codes.OK:
-                print('获取二维码失败: %u' % resp3.status_code)
+                print u'获取二维码失败: %u' % resp3.status_code
                 return False
             result=json.loads(resp3.text[1:-1])
             #print result
             #print resp3.text
             resultTem=result.get('success', "")
             if resultTem=='':
-                for i in list(result.keys()):
+                for i in result.keys():
                     if i!='_t':
-                        print('登陆结果：'+result[i])
+                        print u'登陆结果：'+result[i]
             else:
                 self.cookies.append(resp3.cookies['thor'])
-                print('cookies获取成功！')
+                print u'cookies获取成功！'
                 return True
         except Exception as e:
-            print('Exp {0} : {1}'.format(FuncName(), e))
+            print 'Exp {0} : {1}'.format(FuncName(), e)
             raise
 
         return False
@@ -209,8 +213,8 @@ class JDLogin(object):
         }
         # jd login by QR code
         try:
-            print('+++++++++++++++++++++++++++++++++++++++++++++++++++++++')
-            print('{0} > 请打开京东手机客户端，准备扫码获取cookies:'.format(time.ctime()))
+            print '+++++++++++++++++++++++++++++++++++++++++++++++++++++++'
+            print u'{0} > 请打开京东手机客户端，准备扫码获取cookies:'.format(time.ctime())
 
             urls = (
                 'https://qr.m.jd.com/show',
@@ -225,12 +229,12 @@ class JDLogin(object):
                 params={
                     'appid': 133,
                     'size': 147,
-                    't': (int)(time.time() * 1000)
+                    't': (long)(time.time() * 1000)
                 },
                 verify=False
             )
             if resp.status_code != requests.codes.OK:
-                print('获取二维码失败: %u' % resp.status_code)
+                print u'获取二维码失败: %u' % resp.status_code
                 return False
 
             wlfstk_smdl = resp.cookies['wlfstk_smdl']
@@ -262,7 +266,7 @@ class JDLogin(object):
                         'callback': 'jQuery%u' % random.randint(100000, 999999),
                         'appid': 133,
                         'token': wlfstk_smdl,
-                        '_': (int)(time.time() * 1000)
+                        '_': (long)(time.time() * 1000)
                     },
                     verify=False
                 )
@@ -275,20 +279,20 @@ class JDLogin(object):
                 rs = json.loads(resp.text[n1 + 1:n2])
 
                 if rs['code'] == 200:
-                    print('{} : {}'.format(rs['code'], rs['ticket']))
+                    print u'{} : {}'.format(rs['code'], rs['ticket'])
                     qr_ticket = rs['ticket']
                     imgprocess.kill()
                     break
                 elif rs['code'] == 203:
-                    print('{} : {}'.format(rs['code'], rs['msg']))
+                    print u'{} : {}'.format(rs['code'], rs['msg'])
                     imgprocess.kill()
                     return False
                 else:
-                    print('{} : {}'.format(rs['code'], rs['msg']))
+                    print u'{} : {}'.format(rs['code'], rs['msg'])
                     time.sleep(3)
 
             if not qr_ticket:
-                print('二维码登陆失败')
+                print u'二维码登陆失败'
                 return False
 
             # step 3: validate scan result
@@ -302,16 +306,16 @@ class JDLogin(object):
                 verify=False
             )
             if resp.status_code != requests.codes.OK:
-                print('二维码登陆校验失败: %u' % resp.status_code)
+                print u'二维码登陆校验失败: %u' % resp.status_code
                 return False
 
             self.cookies.append(resp.cookies['thor'])
 
-            print('登陆成功')
+            print u'登陆成功'
             return True
 
         except Exception as e:
-            print('Exp {0} : {1}'.format(FuncName(), e))
+            print 'Exp {0} : {1}'.format(FuncName(), e)
             raise
 
         return False
@@ -327,16 +331,16 @@ def main(options):
             options.num = int(options.num)
             for i in range(options.num):
                 if not jd.login_by_QR():
-                    print('第{}个 登陆失败，请重试！'.format(i+1))
+                    print u'第{}个 登陆失败，请重试！'.format(i+1)
         elif mode=='2':
             accountTem=readFile('accountDate.txt')
             for i in accountTem:
                 id=i.split(',')
-                print('正在登录账号{}'.format(id[0]))
+                print u'正在登录账号{}'.format(id[0])
                 while not jd.login_by_Account(id[0],id[1]):
                     pass
     except Exception as exc:
-        print(exc)
+        print exc
     finally:
         jd.writeCookies()
 
@@ -350,6 +354,6 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--mode', help='1 is login by QR,2 is login by account in file', default=2)
     options = parser.parse_args()
 
-    print(options)
+    print options
 
     main(options)

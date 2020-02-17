@@ -1,23 +1,20 @@
 #coding:utf-8
-import re
 import sys
 import time
 import random
 import json
 import requests
 
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 FuncName = lambda n=0: sys._getframe(n + 1).f_code.co_name
 
 def quit(signum, frame):
-    print('You choose to stop me.')
+    print 'You choose to stop me.'
     sys.exit()
 
 
-
-def build_cookies(file):
-    with open(file) as f:
-        d = json.loads(f.read())
-    return {i["name"]: i["value"] for i in d}
 
 def readFile(file):
     #读文件
@@ -85,7 +82,7 @@ def timeValidation(sess,cookies,headers,gettime):
             }
         )
         if resp.status_code != requests.codes.OK:
-            print(('网络问题，请重试！状态码: %u' % resp.status_code))
+            print (u'网络问题，请重试！状态码: %u' % resp.status_code)
             return False
         x = json.loads(resp.text.encode('utf8'))
         servertime = int(x['serverTime'])
@@ -104,7 +101,7 @@ def timeValidation(sess,cookies,headers,gettime):
             servertime = servertime + 1000
             strtime = time.strftime('%H:%M:%S', time.localtime((coupontime - servertime) / 1000))
             H = int(strtime[:2]) - 8
-            print('剩余时间为：%d:%s' % (H, time.strftime('%M:%S', time.localtime((coupontime - servertime) / 1000))))
+            print u'剩余时间为：%d:%s' % (H, time.strftime('%M:%S', time.localtime((coupontime - servertime) / 1000)))
             #每10秒重新获取京东系统时间
             if servertime - bftime == 10000:
                 jsq1 = time.time() #计时器1
@@ -119,7 +116,7 @@ def timeValidation(sess,cookies,headers,gettime):
                 jsq3 = time.time()#计时器3，用（jsq3-jsq1）/2约为发送请求用的时间
                 #print jsq3-jsq1 #0.5
                 if resp.status_code != requests.codes.OK:
-                    print(('网络问题，请重试！状态码: %u' % resp.status_code))
+                    print (u'网络问题，请重试！状态码: %u' % resp.status_code)
                     return False
                 pd = False
                 x = json.loads(resp.text.encode('utf8'))
@@ -137,8 +134,8 @@ def timeValidation(sess,cookies,headers,gettime):
         if coupontime - servertime -50> 0:
             time.sleep((coupontime - servertime-50) / 1000.0)
         return True
-    except Exception as e:
-        print('Exp {0} : {1}'.format(FuncName(), e))
+    except Exception, e:
+        print 'Exp {0} : {1}'.format(FuncName(), e)
         return False
 
 def getBeiJingTime():
@@ -147,44 +144,38 @@ def getBeiJingTime():
     resp = sess.get(
         'http://api.k780.com:88/?app=life.time&appkey=10003&sign=b59bc3ef6191eb9f747dd4e83c99f2a4&format=json')
     if resp.status_code != requests.codes.OK:
-        print(('网络问题，请重试！状态码: %u' % resp.status_code))
+        print (u'网络问题，请重试！状态码: %u' % resp.status_code)
         return False
     x = json.loads(resp.text)
     if x['success'] == '1':
-        print('当前时间：{}'.format(x['result']['timestamp']))
+        print u'当前时间：{}'.format(x['result']['timestamp'])
     else:
-        print('获取时间出错')
+        print u'获取时间出错'
         return False
 
 def loginValidation(sess,cookies):
     #https://passport.jd.com/loginservice.aspx?callback=jQuery4549788&method=Login&_=1508417256151
     # 获取登录状态
-    cur_ts = str(int(time.time() * 1000))
-    headers = {
-        "Host": "passport.jd.com",
-        "accept": "*/*",
-        "referer": "https://home.jd.com/",
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36',
+    headers={
+        'Host': 'home.jd.com',
+        'Connection': 'keep-alive',
+        'Accept': 'application/json,text/javascript,*/*;q=0.01',
+        'X-Requested-With': 'XMLHttpRequest',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
+        'DNT': '1',
+        'Referer': 'https://a.jd.com/',
         'Accept-Encoding': 'gzip, deflate, br',
-        "Cache-Control": "no-cache",
-        "Pragma": "no-cache",
-        "Sec-Fetch-Mode": "no-cors",
-        "Sec-Fetch-Site": "same-site",
-        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8'
+        'Accept-Language': 'zh-CN,zh;q=0.8,en;q=0.6'
     }
     resp = sess.get(
-        'https://passport.jd.com/user/petName/getUserInfoForMiniJd.action?callback=jQuery3027458&_=' + cur_ts,
+        'http://home.jd.com/',
         cookies=cookies,
         headers=headers
     )
-    print('----- valide login ----')
-    print(resp.text)
-    print('-----------------------')
     if resp.status_code != requests.codes.OK:
-        print(('网络问题，请重试！状态码: %u' % resp.status_code))
+        print (u'网络问题，请重试！状态码: %u' % resp.status_code)
         return False
-    m = re.match(r'jQuery3027458\((.*)\)', resp.text)
-    if m and m.group(1):
+    if resp.text!='{"error":"NotLogin"}':
         return True
     else:
         return False
@@ -208,13 +199,13 @@ def updatethor(sess,cookies):
         cookies=cookies,
         params={
             'callback': 'jQuery%u' % random.randint(100000, 999999),
-            '_': (int)(time.time() * 1000)
+            '_': (long)(time.time() * 1000)
         },
     )
     if resp.status_code != requests.codes.OK:
-        print('获取二维码失败: %u' % resp.status_code)
+        print u'获取二维码失败: %u' % resp.status_code
         return False
-    print(resp.cookies)
+    print resp.cookies
     cookies['thor']=resp.cookies['thor']
 
 

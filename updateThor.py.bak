@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import requests
 import requests.packages.urllib3
-import imp
 requests.packages.urllib3.disable_warnings()
 import time
 import signal
@@ -9,7 +8,7 @@ from function import updatethor,loginValidation,readFile,quit
 import threading
 
 import sys
-imp.reload(sys)
+reload(sys)
 sys.setdefaultencoding('utf-8')
 jdpool = []
 class updateThor(object):
@@ -24,7 +23,7 @@ class updateThor(object):
         #更新cookies中的thor并保存
         global jdpool
         while loginValidation(sess=self.sess,cookies=self.cookies):
-            print('++++++++++++++++++++++++++++++++++++++++++++++++++')
+            print '++++++++++++++++++++++++++++++++++++++++++++++++++'
             time.sleep(600)
             if self.cookies['thor'] in jdpool:
                 jdpool.remove(self.cookies['thor'])
@@ -33,7 +32,7 @@ class updateThor(object):
 
 
 def quitw(signum, frame):
-    print('You choose to stop me.')
+    print 'You choose to stop me.'
     sys.exit()
 
 def writeCookies(cookies):
@@ -58,11 +57,11 @@ if __name__ == '__main__':
             t = threading.Thread(target=updatethread,args=(thor,))
             t.setDaemon(True)
             t.start()
-        print('--------------------------------------')
+        print '--------------------------------------'
         while True:
             pass
     except Exception as exc:
-        print(exc)
+        print exc
     finally:
-        print('该程序已经结束！')
+        print u'该程序已经结束！'
         writeCookies(jdpool)
